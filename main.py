@@ -7,146 +7,153 @@ from modules import module as mod
 
 # Streamlit cheat-sheet https://docs.streamlit.io/develop/quick-reference/cheat-sheet
 
+# Temporary Module:
+
+
+# Pipeline
+
+
+##### Sidebar title 1
+
 st.sidebar.title("Simulation Parameters")
 
-baseline_data = ('Baseline.csv')
-years = ('All', '2014', '2015', '2016')
-months = ('All', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12')
-product_level = ('All', 'Category', 'Sub-Category', 'Product ID')
-categories = ('Furniture', 'Office Supplies') #formular
-sub_categories = ('Tables', 'Bookcases', 'Phones') #formular
-products = ('Tables', 'Bookcases', 'Phones') #formular
-geography_level = ('All', 'Region', 'State', 'City', 'Postal Code')
-regions = ('West', 'East', 'Center') #formular
-states = ('Texas', 'Ohio', 'New York') #formular
-cities = ('Houston', 'Columbus', 'New York City') #formular
-postal_codes = ('77070', '43229', '10035') #formular
-calc_methods1 = ('Increase in %', 'Target Value')
-calc_methods2 = ('Target %', 'Max Treshold %')
-calc_methods3 = ('Increase in % ', 'Target Value ') # space after text mandatory
-calc_methods4 = ('Target % ', 'Min Treshold % ') # space after text mandatory
+##### Select Baseline
 
+baseline_data = ('Baseline.csv') # define selector options
+selector01 = st.sidebar.selectbox("Baseline", baseline_data) # display selector
+path = './data/' + selector01 # apply selection
+df = pd.read_csv(path)
 
-def select_prod(level):
-    if level == 'All':
-        return ['--']  # Return a placeholder for 'All'
-    elif level == 'Category':
-        return categories
-    elif level == 'Sub-Category':
-        return sub_categories
-    elif level == 'Product ID':
-        return products
-    else:
-        return ["Something went wrong, try again"]
-    
-def select_geo(level):
-    if level == 'All':
-        return ['--']  # Return a placeholder for 'All'
-    elif level == 'Region':
-        return regions
-    elif level == 'State':
-        return states
-    elif level == 'City':
-        return cities
-    elif level == 'Postal Code':
-        return postal_codes
-    else:
-        return ["Something went wrong, try again"]
-    
+##### Select Year
 
-# Select data for simulation
+years = mod.fill_selector(df, 'Order Year') # define selector options
+selector02 = st.sidebar.selectbox("Year", years) # display selector
+selected_data = mod.apply_filter(df, 'Order Year', selector02) # apply selection
 
-selector01 = st.sidebar.selectbox("Baseline", baseline_data)
+##### Select Month
 
-# Select period
+months = mod.fill_selector(selected_data, 'Order Month') # define selector options
+selector03 = st.sidebar.selectbox("Month", months) # display selector
+selected_data = mod.apply_filter(selected_data, 'Order Month', selector03) # apply selection
 
-selector02 = st.sidebar.selectbox("Year", years)
-selector03 = st.sidebar.selectbox("Month", months)
+##### Select Product
 
-# Select Product
+product_level = ('All', 'Category', 'Sub-Category', 'Product ID') # define selector options
 
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector04 =  st.selectbox("Product level", product_level)
+    selector04 =  st.selectbox("Product level", product_level) # display level selector
 
 with col2:
-    name = select_prod(selector04)
-    selector05 = st.selectbox("Product name", name)
+    name = mod.select_name(selected_data, selector04)
+    selector05 = st.selectbox("Product name", name) # display name selector
 
-# Select Geography
+if selector04 != "All":
+    selected_data = mod.apply_filter(selected_data, selector04, selector05) # apply selection
+else:
+    pass
+
+##### Select Geography
+
+geography_level = ('All', 'Region', 'State', 'City', 'Postal Code') # define selector options
 
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector06 =  st.selectbox("Geography level", geography_level)
+    selector06 =  st.selectbox("Geography level", geography_level) # display level selector
 
 with col2:
-    name = select_geo(selector06)
-    selector07 = st.selectbox("Geography Name", name)
+    name = mod.select_name(selected_data, selector06)
+    selector07 = st.selectbox("Geography name", name) # display name selector
+
+if selector06 != "All":
+    selected_data = mod.apply_filter(selected_data, selector06, selector07) # apply selection
+else:
+    pass
+
+##### Output table
+
+st.title("Simulation Overview")
+
+selected_data
+
+##### Sidebar title 2
 
 st.sidebar.title("Simulation Metrics")
 
-# Select Metrics
+##### List Price operations
 
-st.sidebar.text("List Price")
+st.sidebar.text("List Price") # metric title
+
+calc_methods1 = ('Increase in %', 'Target Value') # define method options
 
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector08 = st.pills("Select method", calc_methods1)
+    selector08 = st.pills("Select method", calc_methods1) # display method selector
 
 if selector08 == 'Increase in %':
-    col2.number_input("Enter a value between -100 and 100:", min_value=-100.00, max_value=100.00, step=1.00)
+    col2.number_input("Enter a value between -100 and 100:", min_value=-100.00, max_value=100.00, step=1.00) # display data entry
 elif selector08 == 'Target Value':
-    col2.number_input("Enter target value", min_value=0.00)
+    col2.number_input("Enter target value", min_value=0.00) # display data entry
 else: 
     pass
 
-#
+##### Discount operations
 
-st.sidebar.text("Discount Percentage")
+st.sidebar.text("Discount Percentage") # metric title
+
+calc_methods2 = ('Target %', 'Max Treshold %') # define method options
 
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector10 = st.pills("Select method", calc_methods2)
+    selector09 = st.pills("Select method", calc_methods2) # display method selector
 
-if selector10 == 'Target %':
-    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00)
-elif selector10 == 'Max Treshold %':
-    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00)
+if selector09 == 'Target %':
+    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+elif selector09 == 'Max Treshold %':
+    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
 else: 
     pass
 
-#
+##### COGS operations
 
 st.sidebar.text("COGS")
 
+calc_methods3 = ('Increase in % ', 'Target Value ') # define method options (space after text mandatory!)
+
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector12 =  st.pills("Select method", calc_methods3)
+    selector10 =  st.pills("Select method", calc_methods3) # display method selector
 
-if selector12 == 'Increase in % ': 
-    col2.number_input("Enter a value between -100 and 100:  ", min_value=-100.00, max_value=100.00, step=1.00)
-elif selector12 == 'Target Value ':
-    col2.number_input("Enter target value  ", min_value=0.00)
+if selector10 == 'Increase in % ': 
+    col2.number_input("Enter a value between -100 and 100:  ", min_value=-100.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+elif selector10 == 'Target Value ':
+    col2.number_input("Enter target value  ", min_value=0.00) # display data entry (space after text mandatory!)
 else:   
     pass
 
-#
+##### Gross Margin operations
 
 st.sidebar.text("Gross Margin Percentage")
 
+calc_methods4 = ('Target % ', 'Min Treshold % ') # define method options (space after text mandatory!)
+
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    selector14 =  st.pills("Select method", calc_methods4)
+    selector11 =  st.pills("Select method", calc_methods4) # display method selector
 
-if selector14 == 'Target % ':
-    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00)
-elif selector14 == 'Min Treshold % ':
-    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00)
+if selector11 == 'Target % ':
+    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+elif selector11 == 'Min Treshold % ':
+    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
 else:
     pass
 
 
 
 
-path = './data/' + selector01
-df = pd.read_csv(path)
+
+
+
+
+
+
