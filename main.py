@@ -3,7 +3,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from decimal import Decimal, ROUND_HALF_UP
+pd.set_option('display.max_columns', None)
 from modules import module as mod
+
+col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin']
+
 
 # Streamlit cheat-sheet https://docs.streamlit.io/develop/quick-reference/cheat-sheet
 
@@ -74,7 +79,9 @@ else:
 
 st.title("Simulation Overview")
 
-selected_data
+baseline_view = mod.summary_tab(selected_data, 'Baseline')
+
+simulation = selected_data.copy()
 
 ##### Sidebar title 2
 
@@ -91,9 +98,27 @@ with col1:
     selector08 = st.pills("Select method", calc_methods1) # display method selector
 
 if selector08 == 'Increase in %':
-    col2.number_input("Enter a value between -100 and 100:", min_value=-100.00, max_value=100.00, step=1.00) # display data entry
+    selector18 = col2.number_input("Enter a value between -100 and 100:", min_value=-100.00, max_value=100.00, step=1.00) # display data entry
+
+    try:
+        simulation['List Price'] = simulation['List Price'] * (1 + selector18 / 100) # run simulation
+        simulation = mod.profit_calc(simulation, col_list)
+        #simulation
+    except Exception:
+        pass
+
 elif selector08 == 'Target Value':
-    col2.number_input("Enter target value", min_value=0.00) # display data entry
+    selector18 = col2.number_input("Enter target value", min_value=0.00) # display data entry
+
+    if selector04 != 'Product ID':
+        'Error: Please select Product ID in _Product level_'
+    else:
+        try:
+            simulation['List Price'] = selector18 # run simulation
+            simulation = mod.profit_calc(simulation, col_list)
+            #simulation
+        except Exception:
+            pass
 else: 
     pass
 
@@ -108,9 +133,19 @@ with col1:
     selector09 = st.pills("Select method", calc_methods2) # display method selector
 
 if selector09 == 'Target %':
-    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+    selector19 = col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+
+    simulation['Discount'] = selector19 / 100 # run simulation
+    simulation = mod.profit_calc(simulation, col_list)
+    #simulation
+
 elif selector09 == 'Max Treshold %':
-    col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+    selector19 = col2.number_input("Enter a value between 0 and 100: ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+
+    simulation['Discount'] = simulation['Discount'].apply(lambda row: row if row < (selector19 / 100) else (selector19 / 100)) # run simulation
+    simulation = mod.profit_calc(simulation, col_list)
+    #simulation
+
 else: 
     pass
 
@@ -125,11 +160,25 @@ with col1:
     selector10 =  st.pills("Select method", calc_methods3) # display method selector
 
 if selector10 == 'Increase in % ': 
-    col2.number_input("Enter a value between -100 and 100:  ", min_value=-100.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+    selector21 = col2.number_input("Enter a value between -100 and 100:  ", min_value=-100.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+
+    simulation['COGS'] = simulation['COGS'] * (1 + selector21 / 100) # run simulation
+    simulation = mod.profit_calc(simulation, col_list)
+    #simulation
+
 elif selector10 == 'Target Value ':
-    col2.number_input("Enter target value  ", min_value=0.00) # display data entry (space after text mandatory!)
+    selector21 = col2.number_input("Enter target value  ", min_value=0.00) # display data entry (space after text mandatory!)
+
+    if selector04 != 'Product ID':
+        'Error: Please select Product ID in _Product level_'
+    else:
+        simulation['COGS'] = selector21 # run simulation
+        simulation = mod.profit_calc(simulation, col_list)
+        #simulation
 else:   
     pass
+
+
 
 ##### Gross Margin operations
 
@@ -142,15 +191,28 @@ with col1:
     selector11 =  st.pills("Select method", calc_methods4) # display method selector
 
 if selector11 == 'Target % ':
-    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+    selector31 = col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+
+    simulation['Gross Margin'] = selector31 / 100 # run simulation
+    simulation = mod.gross_margin_calc(simulation, col_list)
+    #simulation
+
 elif selector11 == 'Min Treshold % ':
-    col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+    selector31= col2.number_input("Enter a value between 0 and 100:   ", min_value=0.00, max_value=100.00, step=1.00) # display data entry (space after text mandatory!)
+
+    simulation['Gross Margin'] = simulation['Gross Margin'].apply(lambda row: row if row >= (selector31 / 100) else (selector31 / 100)) # run simulation
+    simulation = mod.gross_margin_calc(simulation, col_list)
+    #simulation
+
 else:
     pass
 
 
+##### Simulation output
 
-
+simulation_view = mod.summary_tab(simulation, 'Simulation')
+output_table = pd.concat([baseline_view, simulation_view])
+output_table
 
 
 

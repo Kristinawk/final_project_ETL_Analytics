@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from decimal import Decimal, ROUND_HALF_UP
+
 
 def fill_selector(df, col_name):
     """
@@ -61,3 +63,78 @@ def apply_filter(df, col_name, selector):
         return data_selection
     else:
         return df
+    
+
+def profit_calc(df, col_lst):
+    df['Net Price'] = df['List Price'] * (1 - df['Discount'])
+    df['Sales'] = df['Net Price'] * df['Quantity']
+    df['Profit'] = (df['Net Price'] - df['COGS']) * df['Quantity']
+    df['Gross Margin'] = df['Profit'] / df['Sales']
+    
+    # formatting
+    for col in col_lst:
+        
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = df[col].apply(
+            lambda x: Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if pd.notna(x) else x)
+        df[col] = df[col].astype('float64')
+
+    return df
+
+
+def gross_margin_calc(df, col_lst):
+    df['Net Price'] = df['COGS'] / (1 - df['Gross Margin'])
+    df['Sales'] = df['Net Price'] * df['Quantity']
+    df['List Price'] = df['Net Price'] / (1 - df['Discount'])
+    df['Profit'] = (df['Net Price'] - df['COGS']) * df['Quantity']
+    df['Gross Margin'] = df['Profit'] / df['Sales']
+    
+    # formatting
+    for col in col_lst:
+        
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = df[col].apply(
+            lambda x: Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if pd.notna(x) else x)
+        df[col] = df[col].astype('float64')
+
+    return df
+
+import pandas as pd
+from decimal import Decimal, ROUND_HALF_UP
+
+
+def summary_tab(df, title_str):
+    """
+    This function takes a DataFrame 'df' containing financial data and performs various calculations
+    such as adjusting the 'List Price', calculating 'Discount Value', 'Net Price', 'COGS', 'Gross Margin',
+    and performing group-by operations. It returns a DataFrame with the aggregated results and rounded values.
+    """
+    # Step 1: Add the 'Title' column
+    df['Title'] = title_str
+    
+    # Step 2: Calculate Discount Value
+    df['Discount Value'] = df['Discount'] * df['List Price'] * df['Quantity']
+    
+    # Step 3: Group the data by 'Title' and aggregate the numeric columns
+    df_grouped = df.groupby('Title')[['Quantity', 'Sales', 'Discount Value', 'Profit']].sum()
+    
+    # Step 4: Calculate the rest of financial metrics
+    df_grouped['Net Price'] = df_grouped['Sales'] / df_grouped['Quantity']
+    df_grouped['COGS'] = (df_grouped['Sales'] - df_grouped['Profit']) / df_grouped['Quantity']
+    df_grouped['List Price'] = (df_grouped['Sales'] + df_grouped['Discount Value']) / df_grouped['Quantity']
+    df_grouped['Discount'] = 1 - (df_grouped['Net Price'] / df_grouped['List Price'])
+    df_grouped['Gross Margin'] = df_grouped['Profit'] / df_grouped['Sales']
+        
+    # Step 5: Reorder the columns
+    new_column_order = ['COGS', 'List Price', 'Net Price', 'Discount', 'Quantity', 'Sales', 'Profit', 'Gross Margin']
+    df_grouped = df_grouped[new_column_order]
+    
+    # Step 6: Round the values in the DataFrame
+    for col in df_grouped.columns:
+        df_grouped[col] = df_grouped[col].apply(
+            lambda x: Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if pd.notna(x) else x)
+        df_grouped[col] = df_grouped[col].astype('float64')
+    
+    return df_grouped
+
+    
