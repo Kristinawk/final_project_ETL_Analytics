@@ -17,6 +17,8 @@ col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin'
 
 # Pipeline
 
+#st.image('./notebooks/support_doc/logo.PNG')
+
 
 ##### Sidebar title 1
 
@@ -208,14 +210,27 @@ else:
     pass
 
 
-##### Simulation output
+##### Simulation output  - Selection
+
+st.header('Selection')
 
 simulation_view = mod.summary_tab(simulation, 'Simulation')
-output_table = pd.concat([baseline_view, simulation_view])
-output_table
+output_table_selection = pd.concat([baseline_view, simulation_view])
+output_table_selection
+
+mod.comparison_bar_charts(output_table_selection, df_name='selection')
 
 
+##### Simulation output  - Total Business including Selection
 
+st.header('Total Business')
 
+baseline_total_view = mod.summary_tab(df, 'Baseline')
 
+simulation_total = mod.insert_changes(df, simulation)
+simulation_total_view = mod.summary_tab(simulation_total, 'Simulation')
 
+output_table_total = pd.concat([baseline_total_view, simulation_total_view])
+output_table_total
+
+mod.comparison_bar_charts(output_table_total, df_name='total')

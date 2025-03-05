@@ -103,34 +103,36 @@ import pandas as pd
 from decimal import Decimal, ROUND_HALF_UP
 
 
-def summary_tab(df, title_str):
+def summary_tab(df, version_str):
     """
     This function takes a DataFrame 'df' containing financial data and performs various calculations
     such as adjusting the 'List Price', calculating 'Discount Value', 'Net Price', 'COGS', 'Gross Margin',
     and performing group-by operations. It returns a DataFrame with the aggregated results and rounded values.
     """
     # Step 1: Add the 'Title' column
-    df['Title'] = title_str
+    df['Version'] = version_str
     
-    # Step 2: Calculate Discount Value
+    # Step 2: Calculate Discount and COGS Total value
     df['Discount Value'] = df['Discount'] * df['List Price'] * df['Quantity']
+    df['Total COGS'] = df['COGS'] * df['Quantity']
     
     # Step 3: Group the data by 'Title' and aggregate the numeric columns
-    df_grouped = df.groupby('Title')[['Quantity', 'Sales', 'Discount Value', 'Profit']].sum()
+    df_grouped = df.groupby('Version')[['Quantity', 'Sales', 'Discount Value', 'Total COGS', 'Profit']].sum()
     
     # Step 4: Calculate the rest of financial metrics
     df_grouped['Net Price'] = df_grouped['Sales'] / df_grouped['Quantity']
     df_grouped['COGS'] = (df_grouped['Sales'] - df_grouped['Profit']) / df_grouped['Quantity']
     df_grouped['List Price'] = (df_grouped['Sales'] + df_grouped['Discount Value']) / df_grouped['Quantity']
-    df_grouped['Discount'] = 1 - (df_grouped['Net Price'] / df_grouped['List Price'])
-    df_grouped['Gross Margin'] = df_grouped['Profit'] / df_grouped['Sales']
+    df_grouped['Disc. %'] = 1 - (df_grouped['Net Price'] / df_grouped['List Price'])
+    df_grouped['GM %'] = df_grouped['Profit'] / df_grouped['Sales']
         
     # Step 5: Reorder the columns
-    new_column_order = ['COGS', 'List Price', 'Net Price', 'Discount', 'Quantity', 'Sales', 'Profit', 'Gross Margin']
+    new_column_order = ['COGS', 'List Price', 'Net Price', 'Disc. %', 'Quantity', 'Sales', 'Total COGS', 'Profit', 'GM %']
     df_grouped = df_grouped[new_column_order]
     
     # Step 6: Round the values in the DataFrame
     for col in df_grouped.columns:
+        df_grouped[col] = pd.to_numeric(df_grouped[col], errors='coerce')
         df_grouped[col] = df_grouped[col].apply(
             lambda x: Decimal(str(x)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP) if pd.notna(x) else x)
         df_grouped[col] = df_grouped[col].astype('float64')
@@ -138,3 +140,70 @@ def summary_tab(df, title_str):
     return df_grouped
 
     
+def insert_changes(original_df, updated_rows_df):
+    new_df = original_df.copy()
+    new_df.set_index('Row ID', inplace=True)
+    updated_rows_df.set_index('Row ID', inplace=True)
+    new_df.update(updated_rows_df)
+    new_df.reset_index(inplace=True)
+    return new_df
+
+
+def comparison_bar_charts(df, df_name='df'):
+    """
+    Function to generate and display three side-by-side bar charts for 'Sales', 'Total COGS', and 'Profit'.
+    The charts are created using Plotly Express and displayed in a Streamlit app. Each bar is colored based on the 'Version'.
+    The axis titles and legends are hidden, and the chart titles are centered.
+
+    Parameters:
+    df (pd.DataFrame): The DataFrame containing the data for the charts, including 'Version', 'Sales', 'Total COGS', and 'Profit'.
+    df_name (str): A unique name or identifier for the DataFrame, used to create unique chart keys. Default is 'df'.
+    """
+    # Reset index and add a 'Color' column based on the 'Version' column
+    df_reset = df.reset_index()
+    df_reset['Color'] = df_reset['Version']
+
+    # Create three columns in the Streamlit layout for displaying the charts
+    col1, col2, col3 = st.columns(3)
+
+    # First chart (Sales)
+    with col1:
+        fig_sales = px.bar(df_reset, 
+                           x='Version', 
+                           y='Sales', 
+                           color='Color', 
+                           height=300, 
+                           width=400)
+        fig_sales.update_layout(title={'text': 'Sales', 'x': 0.5, 'xanchor': 'center'},
+                                xaxis_title="",
+                                yaxis_title="",
+                                showlegend=False)
+        st.plotly_chart(fig_sales, key=f'{df_name}_sales_chart')
+
+    # Second chart (Total COGS)
+    with col2:
+        fig_cogs = px.bar(df_reset, 
+                          x='Version', 
+                          y='Total COGS', 
+                          color='Color', 
+                          height=300, 
+                          width=400)
+        fig_cogs.update_layout(title={'text': 'Total COGS', 'x': 0.5, 'xanchor': 'center'},
+                               xaxis_title="",
+                               yaxis_title="",
+                               showlegend=False)
+        st.plotly_chart(fig_cogs, key=f'{df_name}_cogs_chart')
+
+    # Third chart (Profit)
+    with col3:
+        fig_profit = px.bar(df_reset, 
+                            x='Version', 
+                            y='Profit', 
+                            color='Color', 
+                            height=300, 
+                            width=400)
+        fig_profit.update_layout(title={'text': 'Profit', 'x': 0.5, 'xanchor': 'center'},
+                                 xaxis_title="",
+                                 yaxis_title="",
+                                 showlegend=False)
+        st.plotly_chart(fig_profit, key=f'{df_name}_profit_chart')
