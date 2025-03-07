@@ -17,7 +17,30 @@ col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin'
 
 # Pipeline
 
-st.image("https://www.flaticon.es/icono-gratis/aplicacion-de-bolsa-de-valores_3781647")
+##### Wallpaper
+
+background_image_url = "https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/profit_green.PNG?raw=true"
+
+
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("{background_image_url}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        height: 100vh;  /* Full screen height */
+        width: 100vw;   /* Full screen width */
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+##### Company logo
+
+st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/Capture.PNG?raw=true')
 
 
 
@@ -256,4 +279,7 @@ if st.button("💾 Save Simulation"):
         mod.save_list_to_csv(baseline_list, simulations_file_path)
     else:
         st.warning("Please enter a simulation name before saving.")
+
+
+
 
