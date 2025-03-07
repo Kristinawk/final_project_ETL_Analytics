@@ -19,7 +19,7 @@ col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin'
 
 ##### Company logo
 
-st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/green-supermarket.jpg?raw=true', size='large')
+st.sidebar.image('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/logo_new.PNG?raw=true')
 
 
 ##### Wallpaper
