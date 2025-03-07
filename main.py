@@ -17,9 +17,14 @@ col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin'
 
 # Pipeline
 
+##### Company logo
+
+st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/green-supermarket.jpg?raw=true', size='large')
+
+
 ##### Wallpaper
 
-background_image_url = "https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/trend_growth.jpg?raw=true"
+background_image_url = "https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/coin-wooden-table.jpg?raw=true"
 
 
 st.markdown(
@@ -37,12 +42,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-##### Company logo
-
-st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/logo.PNG?raw=true', size='large')
-
-
 
 
 ##### Sidebar title 1
