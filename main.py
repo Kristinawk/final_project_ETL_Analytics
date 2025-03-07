@@ -19,7 +19,7 @@ col_list = ['List Price', 'Net Price', 'Sales', 'COGS', 'Profit', 'Gross Margin'
 
 ##### Wallpaper
 
-background_image_url = "https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/profit_green.PNG?raw=true"
+background_image_url = "https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/trend_growth.jpg?raw=true"
 
 
 st.markdown(
@@ -40,7 +40,7 @@ st.markdown(
 
 ##### Company logo
 
-st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/Capture.PNG?raw=true')
+st.logo('https://github.com/Kristinawk/final_project_ETL_Analytics/blob/main/notebooks/support_doc/logo.PNG?raw=true', size='large')
 
 
 
